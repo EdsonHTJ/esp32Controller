@@ -16,8 +16,8 @@ int prevAnalog = 0;
 int maxYval = 4095;
 int maxXval = 4095;
 
-#define ssid "Eds"
-#define password "aaaabbbb"
+#define ssid "D&D"
+#define password "29091999"
  
 WiFiServer wifiServer(80);
 
@@ -73,10 +73,24 @@ void loop() {
             if (!res) {
                 sendUserState(actualUserState, client);
                 prevUserState = actualUserState;
-            }
-            
+                delay(100);
 
-            delay(10);
+            }
+
+            while (client.available()>0) { // O que vai fazer enquanto está conectado e receber alguma mensagem
+        
+                String c = client.readStringUntil('\n');
+                //Serial.println(c);
+                if(c == "l1"){
+                    digitalWrite(LED_BLUE, HIGH);
+                }  
+                if(c == "l0"){
+                    digitalWrite(LED_BLUE, LOW);
+                }  
+            }
+
+            delay(50);
+
         }
 
         client.stop();
@@ -127,14 +141,14 @@ void readUs(userState_t* u) {
 void sendUserState(userState_t u, WiFiClient client) {
     char toSend[100];
     memset(toSend, 0, sizeof(toSend));
-    sprintf(toSend, "{ \"b1\":%i, \"b2\": %i, \"X\": %i, \"Y\": %i }", u.b1, u.b2, u.X, u.Y);
-    Serial.println(toSend);
+    sprintf(toSend, "b1:%i,b2:%i,X:%i,Y:%i\n", u.b1, u.b2, u.X, u.Y);
+    //Serial.println(toSend);
     
     if (!client.connected()) {
         return;
     }
-    Serial.println("Send to client");
-    client.println(toSend);
+    //Serial.println("Send to client");
+    client.print(toSend);
 }
 
 bool compareUserState(userState_t u1, userState_t u2) {
@@ -152,7 +166,7 @@ bool compareUserState(userState_t u1, userState_t u2) {
     }
 
     int absYdif = abs(u1.Y - u2.Y);
-    if (absYdif > 2) {
+    if (absYdif > 5) {
         return false;
     }
 
